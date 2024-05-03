@@ -1,11 +1,7 @@
 import asyncio
-import json
-import os
-import random
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord import client
 
 
 class Moderation(commands.Cog):
@@ -38,7 +34,7 @@ class Moderation(commands.Cog):
             await interaction.response.send_message("You don't have permission to kick members")
 
     @app_commands.command()
-    # @app_commands.default_permissions(ban_members = True)
+    @app_commands.default_permissions(ban_members = True)
     async def ban(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
         await member.ban(reason=reason)
         await interaction.response.send_message(f'User {member} has been banned')
@@ -56,3 +52,7 @@ class Moderation(commands.Cog):
     async def clear(self, interaction: discord.Interaction, amount: int):
         await interaction.channel.purge(limit=amount + 1)
         await interaction.response.send_message(f'Удалено {amount} сообщений!', delete_after=2)
+
+
+async def setup(bot):
+    await bot.add_cog(Moderation(bot))

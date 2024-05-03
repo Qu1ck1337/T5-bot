@@ -63,7 +63,6 @@ async def load_extensions():
 
 
 async def main():
-    print("Bot powered by Qu1ck_1337")
     async with bot:
         await load_extensions()
         console(bcolors.ENDC, "Starting bot via token from TOKEN.txt")

@@ -8,6 +8,11 @@ from discord import app_commands
 from tools.bcolors import bcolors
 from tools.console import console
 
+from dotenv import load_dotenv
+
+# Loading .env file
+load_dotenv()
+
 
 intents = discord.Intents().all()
 bot = commands.AutoShardedBot(command_prefix="!", intents=intents)
@@ -67,7 +72,7 @@ async def main():
         await load_extensions()
         console(bcolors.ENDC, "Starting bot via token from TOKEN.txt")
         try:
-            await bot.start(open("TOKEN.txt").read())
+            await bot.start(os.getenv('TOKEN'))
         except discord.LoginFailure as e:
             console(bcolors.WARNING, e)
             console(bcolors.FAIL, "Be sure you placed file TOKEN.txt with right token in current directory")

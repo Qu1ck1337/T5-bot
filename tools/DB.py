@@ -1,13 +1,17 @@
+import os
 import configparser
 import datetime
+import psycopg2
+
+from dotenv import load_dotenv
 from dataclasses import dataclass
 
-import psycopg2
+load_dotenv()
 
 config = configparser.ConfigParser()
 config.read("./BD_config.ini")
-conn = psycopg2.connect(dbname=config['db']["dbname"], user=config['db']["user"],
-                        password=config['db']["password"], host=config['db']["host"])
+conn = psycopg2.connect(dbname=os.getenv('DB_NAME'), user=os.getenv('DB_USERNAME'),
+                        password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'))
 cursor = conn.cursor()
 
 

@@ -33,15 +33,34 @@ class Punishment:
 # </editor-fold>
 
 
-# <editor-fold desc="Guilds">
-def create_guild(guild_id: int):
-    cursor.execute(f'INSERT INTO guilds VALUES ({guild_id})')
+# <editor-fold desc="Users">
+def get_user(user_id: int):
+    cursor.execute(f'SELECT * FROM users WHERE id={user_id}')
+    return cursor.fetchone()
+
+
+def insert_user(user_id: int):
+    cursor.execute(f'INSERT INTO users VALUES ({user_id})')
     conn.commit()
+# </editor-fold>
 
 
+# <editor-fold desc="Guilds">
 def get_guild(guild_id: int):
     cursor.execute(f'SELECT * FROM guilds WHERE id={guild_id}')
     return cursor.fetchone()
+
+
+def insert_guild(guild_id: int, owner_id: int):
+    if not get_user(owner_id):
+        insert_user(owner_id)
+    cursor.execute(f'INSERT INTO guilds VALUES ({guild_id}, {owner_id})')
+    conn.commit()
+
+
+def remove_guild(guild_id: int):
+    cursor.execute(f'DELETE FROM guilds WHERE id={guild_id}')
+    conn.commit()
 # </editor-fold>
 
 

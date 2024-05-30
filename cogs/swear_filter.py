@@ -4,7 +4,7 @@ from collections import deque
 
 client = discord.Client(intents=discord.Intents().all())
 
-f = open('cogs/data/censore.txt', 'r', encoding='utf-8')
+f = open("cogs\\recources\\censore.txt", "r", encoding='utf-8')
 now = [f.read().strip().split(", ")]
 censored_words = now[0]
 f.close()

@@ -21,6 +21,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=intents)
 # Called when the client is done preparing the data received from Discord.
 @bot.event
 async def on_ready():
+    await bot.tree.sync(guild=bot.get_guild(1205585730727051284))
     await bot.tree.sync()
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
                                                         name="is under development"))
@@ -70,12 +71,12 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
-        console(bcolors.ENDC, "Starting bot via token from TOKEN.txt")
+        console(bcolors.ENDC, "Starting bot via token from .env")
         try:
             await bot.start(os.getenv('TOKEN'))
         except discord.LoginFailure as e:
             console(bcolors.WARNING, e)
-            console(bcolors.FAIL, "Be sure you placed file TOKEN.txt with right token in current directory")
+            console(bcolors.FAIL, "Be sure you placed file .env with right token in current directory")
 
 
 asyncio.run(main())

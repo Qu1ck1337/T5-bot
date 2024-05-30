@@ -1,4 +1,6 @@
 import asyncio
+import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -19,30 +21,36 @@ class Moderation(commands.Cog):
         await interaction.response.send_message(f'User {member} has been kicked')
 
     @app_commands.command()
-    async def mute(self, interaction: discord.Interaction, member: discord.Member, time: int):
-        emb = discord.Embed(title="Участник Был Замучен!")
-        await interaction.channel.purge(limit=1)
-        await interaction.response.send_message(embed=emb)
-        muted_role = discord.utils.get(interaction.guild.roles, name="Muted")
-        await member.add_roles(muted_role)
-        await asyncio.sleep(time)
-        await member.remove_roles(muted_role)
+    @app_commands.describe(member="Участник, кого мьютить")
+    @app_commands.describe(time="Время мьюта в минутах")
+    @app_commands.describe(reason="Причина мьюта")
+    async def mute(self, interaction: discord.Interaction, member: discord.Member, time: int, reason: str = None):
+        embed = discord.Embed(title=f"Участник {member.display_name} был замьючен на {time} минут",
+                              description=reason)
+        await member.timeout(discord.utils.utcnow() + datetime.timedelta(minutes=time))
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command()
+    async def unmute(self, interaction: discord.Interaction, member: discord.Member):
+        embed = discord.Embed(title=f"Участник {member.display_name} был размьючен")
+        await member.timeout(None)
+        await interaction.response.send_message(embed=embed)
 
     @kick.error
     async def kick_error(self, interaction: discord.Interaction, error):
         if isinstance(error, commands.MissingPermissions):
-            await interaction.response.send_message("You don't have permission to kick members")
+            await interaction.response.send_message("У вас нет прав, чтобы кикать участников сервера!")
 
     @app_commands.command()
-    @app_commands.default_permissions(ban_members = True)
+    @app_commands.default_permissions(ban_members=True)
     async def ban(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
         await member.ban(reason=reason)
-        await interaction.response.send_message(f'User {member} has been banned')
+        await interaction.response.send_message(f'Участник {member} был забанен')
 
     @ban.error
     async def ban_error(self, interaction: discord.Interaction, error):
         if isinstance(error, commands.MissingPermissions):
-            await interaction.response.send_message("You don't have permission to ban members")
+            await interaction.response.send_message("У вас нет прав, чтобы банить участников сервера!")
 
     @app_commands.command()
     async def unban(self, interaction: discord.Interaction, user: discord.User, reason: str = None):
@@ -50,8 +58,14 @@ class Moderation(commands.Cog):
 
     @app_commands.command()
     async def clear(self, interaction: discord.Interaction, amount: int):
-        await interaction.channel.purge(limit=amount + 1)
-        await interaction.response.send_message(f'Удалено {amount} сообщений!', delete_after=2)
+        def check(x):
+            print(x.interaction)
+            return False
+
+        await interaction.response.defer()
+        await interaction.channel.purge(limit=amount + 1, check=lambda x: not x.interaction or x.interaction.id != interaction.id)
+        message = await interaction.edit_original_response(content=f'Удалено {amount} сообщений!')
+        await message.delete(delay=10)
 
 
 async def setup(bot):

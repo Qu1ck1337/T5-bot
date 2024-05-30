@@ -21,7 +21,6 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=intents)
 # Called when the client is done preparing the data received from Discord.
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=bot.get_guild(1205585730727051284))
     await bot.tree.sync()
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
                                                         name="is under development"))

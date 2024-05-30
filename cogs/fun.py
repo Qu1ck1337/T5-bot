@@ -1,6 +1,7 @@
 import random
 import discord
 import requests
+from discord import app_commands
 
 from discord.ext import commands
 from bs4 import BeautifulSoup as bs
@@ -80,18 +81,18 @@ class Fun(commands.Cog):
             self.__user_choice = "Бумага"
             await self.__edit_message(interaction)
 
-    @commands.command(aliases=['rps', 'rockpaperscissors'])
-    async def janken(self, ctx):
+    @app_commands.command()
+    async def janken(self, interaction: discord.Interaction):
         """Камень ножницы бумага!"""
         description = 'Сыграй со мной в камень ножницы бумагу! выбери один из вариантов ниже:'
-        embed = discord.Embed(color=0xffcd4c, title=f'{ctx.message.author}: Камень Ножницы Бумага',
+        embed = discord.Embed(color=0xffcd4c, title=f'{interaction.user}: Камень Ножницы Бумага',
                               description=description)
-        await ctx.send(embed=embed, view=self.JankenButtons(embed=embed))
+        await interaction.response.send_message(embed=embed, view=self.JankenButtons(embed=embed))
 
-    @commands.command()
-    async def slots(self, ctx):
+    @app_commands.command()
+    async def slots(self, interaction: discord.Interaction):
         """Азино три топора"""
-        author_id = str(ctx.author.id)
+        author_id = str(interaction.user.id)
 
         symbols = ['🍒', '🔔', '7️⃣', '👑', '☠️']
 
@@ -121,10 +122,10 @@ class Fun(commands.Cog):
         embed = discord.Embed(color=0x36c600, title='🎰 Slots Azino777',
                               description=str(slot[0]) + str(slot[1]) + str(slot[2]))
         embed.set_footer(text=footer, icon_url="https://i.imgur.com/uZIlRnK.png")
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(aliases=["anekdot"])
-    async def joke(self, ctx):
+    @app_commands.command()
+    async def joke(self, interaction: discord.Interaction):
         """Парсит анекдот из сайта, и делится им с тобой"""
         joke_website = "https://baneks.ru/"
         joke_number = str(random.randint(1, 1142))
@@ -138,7 +139,8 @@ class Fun(commands.Cog):
             embed = discord.Embed(color=0x33bbff, title=f"📋 Анекдот #{joke_number}",
                                   description=jokes.p.text)
             embed.set_footer(text="")
-            message = await ctx.send(embed=embed)
+            await interaction.response.send_message("А вот и анекдот!", ephemeral=True, delete_after=5)
+            message = await interaction.channel.send(embed=embed)
 
             emojis = ['🤣', '😐', '💩', '🪗']
             for emoji in emojis:

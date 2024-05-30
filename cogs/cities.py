@@ -1,17 +1,8 @@
-import discord
-import codecs
-from discord.ext import commands
-import datetime
-import json
-import discord
-from discord import app_commands
 from discord.ext import commands
 import random
 
 
-client = discord.Client(intents=discord.Intents().all())
-
-f = open("cogs\\recources\\cities.txt", "r", encoding='utf-8')
+f = open('cogs\\resources\\cities.txt', 'r', encoding='utf-8')
 list_of_cities = []
 for line in f:
     if line != "":
@@ -45,7 +36,7 @@ class Cities(commands.Cog):
         elif self.check == True:
 
             player_city = message.content.lower()
-            
+
             if player_city not in list_of_cities:
                 await message.channel.send("Your city doesn't exist or has already appeared")
                 await message.channel.send("Try again")
@@ -64,9 +55,6 @@ class Cities(commands.Cog):
                 await message.channel.send("You won")
                 self.check = False
 
-                
-        
-        
 
 async def setup(bot):
     await bot.add_cog(Cities(bot))

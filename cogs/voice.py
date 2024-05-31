@@ -70,32 +70,30 @@ class Voice(commands.Cog):
                     await before.channel.delete()
                     self.temporary_channels.remove(before.channel.id)
 
-        try:
-            if after.channel.name == "Join to create VC":
-                DB.cursor.execute(f"SELECT id FROM users WHERE id={member.id}")
-                if not DB.cursor.fetchone():
-                    DB.cursor.execute(f"INSERT INTO users VALUES ({member.id})")
-                    DB.conn.commit()
+        if after.channel.name == "Join to create VC":
+            DB.cursor.execute(f"SELECT id FROM users WHERE id={member.id}")
+            if not DB.cursor.fetchone():
+                DB.cursor.execute(f"INSERT INTO users VALUES ({member.id})")
+                DB.conn.commit()
 
-                DB.cursor.execute(f"SELECT room_name, participants_limit FROM voice_rooms WHERE user_id = {member.id}")
-                data = DB.cursor.fetchone()
-                if data is not None:
-                    possible_channel_name = data[0]
-                    possible_chanel_limit = data[1]
-                else:
-                    query = "INSERT INTO voice_rooms (user_id, room_name, participants_limit) VALUES (%s, %s, %s)"
-                    DB.cursor.execute(query, (member.id, possible_channel_name, 0))
-                    DB.conn.commit()
+            DB.cursor.execute(f"SELECT room_name, participants_limit FROM voice_rooms WHERE user_id = {member.id}")
+            data = DB.cursor.fetchone()
+            if data is not None:
+                possible_channel_name = data["room_name"]
+                possible_chanel_limit = data["participants_limit"]
+            else:
+                query = "INSERT INTO voice_rooms (user_id, room_name, participants_limit) VALUES (%s, %s, %s)"
+                DB.cursor.execute(query, (member.id, possible_channel_name, 0))
+                DB.conn.commit()
 
-                new_channel = await after.channel.clone(name=possible_channel_name)
-                await new_channel.edit(user_limit=possible_chanel_limit)
+            new_channel = await after.channel.clone(name=possible_channel_name)
+            await new_channel.edit(user_limit=possible_chanel_limit)
 
-                await member.move_to(new_channel)
-                self.temporary_channels.append(new_channel.id)
-                view = self.SettingsView()
-                await new_channel.send("Choose setting for this voice channel",view=view)
-        except Exception as ex:
-            print(ex)
+            await member.move_to(new_channel)
+            self.temporary_channels.append(new_channel.id)
+            view = self.SettingsView()
+            await new_channel.send("Choose setting for this voice channel", view=view)
+
 
     #создание канала Join to creaete VC через команду
     @app_commands.command(name="create_vc", description="Create a voice channel")

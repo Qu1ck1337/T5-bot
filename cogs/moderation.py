@@ -55,6 +55,7 @@ class Moderation(commands.Cog):
     @app_commands.command()
     async def unban(self, interaction: discord.Interaction, user: discord.User, reason: str = None):
         await interaction.guild.unban(user=user, reason=reason)
+        await interaction.response.send_message(f"Пользователь {user.display_name} был разбанен на сервере!")
 
     @app_commands.command()
     async def clear(self, interaction: discord.Interaction, amount: int):

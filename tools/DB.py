@@ -1,18 +1,16 @@
 import os
-import configparser
 import datetime
-import psycopg2
+import psycopg2.extras
 
 from dotenv import load_dotenv
 from dataclasses import dataclass
 
 load_dotenv()
 
-config = configparser.ConfigParser()
-config.read("./BD_config.ini")
 conn = psycopg2.connect(dbname=os.getenv('DB_NAME'), user=os.getenv('DB_USERNAME'),
                         password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'))
-cursor = conn.cursor()
+cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+conn.autocommit = True
 
 
 # <editor-fold desc="Schemas">
@@ -20,13 +18,22 @@ cursor = conn.cursor()
 class Member:
     UserID: int
     GuildID: int
+    currentExp: int
+    currentLevel: int
 
+@dataclass
+class level_rewards:
+    GuildID: int
+    RoleId: int
+    levelToReach: int
 
 @dataclass
 class VoiceRoom:
     UserID: int
     GuildID: int
-
+    roomName: str
+    participantsLimit: int
+    isVisible: bool
 
 @dataclass
 class Punishment:
@@ -37,46 +44,40 @@ class Punishment:
 # </editor-fold>
 
 
-# <editor-fold desc="Users">
-def get_user(user_id: int):
-    cursor.execute(f'SELECT * FROM users WHERE id={user_id}')
-    return cursor.fetchone()
-
-
-def insert_user(user_id: int):
-    cursor.execute(f'INSERT INTO users VALUES ({user_id})')
-    conn.commit()
-# </editor-fold>
-
-
 # <editor-fold desc="Guilds">
+def create_guild(guild_id: int):
+    cursor.execute(f'INSERT INTO guilds VALUES ({guild_id})')
+    conn.commit()
+
+
 def get_guild(guild_id: int):
     cursor.execute(f'SELECT * FROM guilds WHERE id={guild_id}')
     return cursor.fetchone()
-
-
-def insert_guild(guild_id: int, owner_id: int):
-    if not get_user(owner_id):
-        insert_user(owner_id)
-    cursor.execute(f'INSERT INTO guilds VALUES ({guild_id}, {owner_id})')
-    conn.commit()
-
-
-def remove_guild(guild_id: int):
-    cursor.execute(f'DELETE FROM guilds WHERE id={guild_id}')
-    conn.commit()
 # </editor-fold>
 
 
 # <editor-fold desc="Members">
 def insert_member(member: Member):
-    cursor.execute('INSERT INTO members VALUES (%s, %s)', (member.UserID, member.GuildID))
+    cursor.execute(f'INSERT INTO users VALUES ({member.UserID})')
+    cursor.execute('INSERT INTO members VALUES (%s, %s, %s, %s)', (member.UserID, member.GuildID, member.currentExp, member.currentLevel))
+    conn.commit()
+
+
+def update_member(member: Member):
+    cursor.execute(f'UPDATE members SET current_exp={member.currentExp}, current_level={member.currentLevel} WHERE user_id={member.UserID} AND guild_id={member.GuildID}')
     conn.commit()
 
 
 def get_member(user_id: int, guild_id: int):
-    cursor.execute(f'SELECT * FROM members WHERE user_id={user_id} AND guild_id={guild_id}')
+    query = f'SELECT * FROM members WHERE user_id={user_id} AND guild_id={guild_id}'
+    cursor.execute(query)
+    result = cursor.fetchone()
+    if result:
+        return result
+    insert_member(Member(UserID=user_id, GuildID=guild_id, currentExp=0, currentLevel=0))
+    cursor.execute(query)
     return cursor.fetchone()
+
 # </editor-fold>
 
 
@@ -88,8 +89,8 @@ def get_user_voice_room(user_id: int):
 
 
 # <editor-fold desc="Punishments">
-def get_punishments():
-    cursor.execute('SELECT * FROM punishments')
+def get_punishments(user_id: int, guild_id: int, type: int, expiring_time: datetime.datetime):
+    cursor.execute(f'SELECT * FROM punishments WHERE user_id={user_id} AND guild_id={guild_id} AND punishment_type={type} AND duration={expiring_time}')
     return cursor.fetchall()
 
 
